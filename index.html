@@ -32,25 +32,6 @@
     color: #34495e;
   }
 
-  .box input, .box button, .box select {
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-  }
-
-  .box button {
-    cursor: pointer;
-    background-color: #3498db;
-    color: #fff;
-    border: none;
-    transition: 0.3s;
-  }
-
-  .box button:hover {
-    background-color: #2980b9;
-  }
-
   .add-row {
     display: flex;
     flex-wrap: wrap;
@@ -58,8 +39,24 @@
     align-items: center;
   }
 
-  .add-row input, .add-row select, .add-row button {
-    min-width: 80px;
+  .add-row input, .add-row select {
+    min-width: 120px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+
+  .add-row button {
+    cursor: pointer;
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+  }
+
+  .add-row button:hover {
+    background-color: #2980b9;
   }
 
   table {
@@ -79,13 +76,8 @@
     color: #fff;
   }
 
-  tr:nth-child(even) {
-    background: #f7f9fc;
-  }
-
-  tr:hover {
-    background: #e1ecf7;
-  }
+  tr:nth-child(even) { background: #f7f9fc; }
+  tr:hover { background: #e1ecf7; }
 
   td input, td select {
     width: 100%;
@@ -99,27 +91,24 @@
     color: #3498db;
     text-decoration: none;
   }
-
-  td a:hover {
-    text-decoration: underline;
-  }
+  td a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
 
 <h2>📊 InfoVault</h2>
 
-<!-- Type Selector -->
+<!-- Entry Type Selector -->
 <div class="box">
   <h3>Select Entry Type</h3>
   <select id="entryType" onchange="changeType()">
-    <option value="movie">Movie/Series</option>
-    <option value="software">Software/Server</option>
+    <option value="movie">Movie / Series</option>
+    <option value="software">Software / Server</option>
   </select>
 </div>
 
 <!-- Add Entry -->
-<div class="box" id="addBox">
+<div class="box">
   <h3>Add New Entry</h3>
   <div class="add-row" id="addRow"></div>
   <button onclick="save()">Add Entry</button>
@@ -138,31 +127,33 @@
 </div>
 
 <script>
+// ✅ Replace with your deployed Google Apps Script URL
 var API = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
 
 var currentType = "movie";
 
-// Field templates
+// Fields
 const fields = {
   movie: [
     {id:"name", placeholder:"Movie / Series Name"},
     {id:"genre", placeholder:"Genre", type:"datalist", options:["Action","Adventure","Drama","Comedy","Horror","Romance","Sci-Fi"]},
     {id:"country", placeholder:"Country", type:"datalist", options:["USA","UK","India","Japan","Korea","France"]},
     {id:"year", placeholder:"Release Year", type:"number"},
+    {id:"personality", placeholder:"Famous Personality", type:"datalist", options:["Actor","Director","Producer"]},
     {id:"link", placeholder:"Link (Trailer / IMDb / Streaming)"}
   ],
   software: [
     {id:"name", placeholder:"Software / Server Name"},
-    {id:"personality", placeholder:"Famous Personality / Contributor", type:"datalist", options:["Linus Torvalds","Elon Musk","Bill Gates","Steve Jobs","Ada Lovelace"]},
     {id:"version", placeholder:"Version"},
+    {id:"personality", placeholder:"Famous Personality / Contributor", type:"datalist", options:["Linus Torvalds","Elon Musk","Bill Gates","Steve Jobs","Ada Lovelace"]},
     {id:"link", placeholder:"Link (Documentation / Download)"}
   ]
 };
 
 // Table headers
 const headers = {
-  movie: ["ID","Name","Genre","Country","Year","Link","Action"],
-  software: ["ID","Name","Personality","Version","Link","Action"]
+  movie: ["ID","Name","Genre","Country","Year","Personality","Link","Action"],
+  software: ["ID","Name","Version","Personality","Link","Action"]
 }
 
 // Render input fields
@@ -213,11 +204,23 @@ function save(){
     data[f.id] = document.getElementById(f.id).value;
   });
 
-  fetch(API,{method:"POST", body:JSON.stringify(data)})
-    .then(()=>{ alert("Saved!"); clearInputs(); })
-    .catch(err=>alert("Error: "+err));
+  fetch(API,{
+    method:"POST",
+    body:JSON.stringify(data)
+  })
+  .then(r=>r.json())
+  .then(res=>{
+    if(res.status === "success") {
+      alert("Saved to Google Sheet!");
+      clearInputs();
+    } else {
+      alert("Error saving: "+res.message);
+    }
+  })
+  .catch(err=>alert("Error: "+err));
 }
 
+// Clear inputs
 function clearInputs(){
   fields[currentType].forEach(f=>document.getElementById(f.id).value="");
 }
@@ -225,13 +228,16 @@ function clearInputs(){
 // Search
 function search(){
   var key = document.getElementById("key").value;
-  fetch(API,{method:"POST", body:JSON.stringify({action:"search", key:key})})
-    .then(r=>r.json())
-    .then(show)
-    .catch(err=>alert("Error: "+err));
+  fetch(API,{
+    method:"POST",
+    body:JSON.stringify({action:"search", key:key})
+  })
+  .then(r=>r.json())
+  .then(show)
+  .catch(err=>alert("Error: "+err));
 }
 
-// Show search results
+// Show results
 function show(data){
   var res = document.getElementById("res");
   res.innerHTML = "";
@@ -247,9 +253,24 @@ function show(data){
   });
 }
 
-// Update (basic)
+// Update entry
 function update(id){
-  alert("Use your Google Apps Script to handle updates for ID: "+id);
+  var data = {action:"update", id:id};
+  fields[currentType].forEach(f=>{
+    var val = document.querySelector(`#res input[id^='${f.id}']`)?.value || document.getElementById(f.id)?.value;
+    if(val) data[f.id] = val;
+  });
+
+  fetch(API,{
+    method:"POST",
+    body:JSON.stringify(data)
+  })
+  .then(r=>r.json())
+  .then(res=>{
+    if(res.status === "success") alert("Updated in Google Sheet!");
+    else alert("Update failed: "+res.message);
+  })
+  .catch(err=>alert("Error: "+err));
 }
 
 // Initial render
