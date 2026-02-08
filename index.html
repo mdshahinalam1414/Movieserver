@@ -5,60 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>📊 InfoVault</title>
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f0f2f5;
-  color: #333;
-  padding: 20px;
-}
-h2 {
-  text-align: center;
-  margin-bottom: 25px;
-  font-size: 2em;
-  color: #2c3e50;
-}
-.box {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 25px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-.box h3 {
-  margin-bottom: 15px;
-  color: #34495e;
-}
-.add-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-}
-.add-row input, .add-row select {
-  min-width: 120px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-.add-row button {
-  cursor: pointer;
-  background-color: #3498db;
-  color: #fff;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-}
+body { font-family: Arial, sans-serif; background: #f0f2f5; color: #333; padding: 20px; }
+h2 { text-align: center; margin-bottom: 25px; font-size: 2em; color: #2c3e50; }
+.box { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.box h3 { margin-bottom: 15px; color: #34495e; }
+.add-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.add-row input, .add-row select { min-width: 120px; padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; }
+.add-row button { cursor: pointer; background-color: #3498db; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; }
 .add-row button:hover { background-color: #2980b9; }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
-}
-th, td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: center;
-}
+table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
 th { background: #3498db; color: #fff; }
 tr:nth-child(even) { background: #f7f9fc; }
 tr:hover { background: #e1ecf7; }
@@ -91,7 +47,7 @@ td a:hover { text-decoration:underline; }
 <!-- Search -->
 <div class="box">
   <h3>Search Database</h3>
-  <input id="key" placeholder="ID / Name / Type / Genre / Country / Personality">
+  <input id="key" placeholder="ID / Name / Type / Genre / Country / Profession">
   <button onclick="search()">Search</button>
 
   <table>
@@ -101,24 +57,21 @@ td a:hover { text-decoration:underline; }
 </div>
 
 <script>
-// ✅ Replace with your deployed Google Apps Script URL
 var API = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
 var currentType = "movie";
 
-// Fields per type
+// Fields per type (removed Famous Personality from movie/software)
 const fields = {
   movie: [
     {id:"name", placeholder:"Movie / Series Name"},
     {id:"genre", placeholder:"Genre", type:"datalist", options:["Action","Adventure","Drama","Comedy","Horror","Romance","Sci-Fi"]},
     {id:"country", placeholder:"Country", type:"datalist", options:["USA","UK","India","Japan","Korea","France"]},
     {id:"year", placeholder:"Release Year", type:"number"},
-    {id:"personality", placeholder:"Famous Personality", type:"datalist", options:["Actor","Director","Producer"]},
     {id:"link", placeholder:"Link (Trailer / IMDb / Streaming)"}
   ],
   software: [
     {id:"name", placeholder:"Software / Server Name"},
     {id:"version", placeholder:"Version"},
-    {id:"personality", placeholder:"Famous Personality / Contributor", type:"datalist", options:["Linus Torvalds","Elon Musk","Bill Gates","Steve Jobs","Ada Lovelace"]},
     {id:"link", placeholder:"Link (Documentation / Download)"}
   ],
   personality: [
@@ -129,14 +82,13 @@ const fields = {
   ]
 };
 
-// Table headers
+// Table headers (removed Famous Personality column)
 const headers = {
-  movie: ["ID","Name","Genre","Country","Year","Personality","Link","Action"],
-  software: ["ID","Name","Version","Personality","Link","Action"],
+  movie: ["ID","Name","Genre","Country","Year","Link","Action"],
+  software: ["ID","Name","Version","Link","Action"],
   personality: ["ID","Name","Profession","Country","Link","Action"]
 };
 
-// Render inputs
 function changeType(){
   currentType = document.getElementById("entryType").value;
   var row = document.getElementById("addRow");
@@ -152,13 +104,11 @@ function changeType(){
   renderTableHead();
 }
 
-// Table header
 function renderTableHead(){
   var th = document.getElementById("tableHead");
   th.innerHTML = "<tr>" + headers[currentType].map(h=>`<th>${h}</th>`).join("") + "</tr>";
 }
 
-// Add option dynamically
 function addOption(id){
   var val = prompt("Enter new option for " + id + ":");
   if(val){
@@ -177,45 +127,29 @@ function addOption(id){
   }
 }
 
-// Save entry
 function save(){
   var data = {action:"add", id:Date.now(), type: currentType};
   fields[currentType].forEach(f=>{
     data[f.id] = document.getElementById(f.id).value;
   });
-  // Specify sheetName for each type
   if(currentType==="movie") data.sheet="Sheet1";
   else if(currentType==="software") data.sheet="Sheet2";
   else data.sheet="Sheet3";
 
-  fetch(API,{
-    method:"POST",
-    body:JSON.stringify(data)
-  })
+  fetch(API,{method:"POST", body:JSON.stringify(data)})
   .then(r=>r.json())
-  .then(res=>{
-    if(res.status==="success"){ alert("Saved to Google Sheet!"); clearInputs(); }
-    else alert("Error saving: "+res.message);
-  })
+  .then(res=>{if(res.status==="success"){ alert("Saved!"); clearInputs(); } else alert("Error: "+res.message);})
   .catch(err=>alert("Error: "+err));
 }
 
-// Clear inputs
 function clearInputs(){ fields[currentType].forEach(f=>document.getElementById(f.id).value=""); }
 
-// Search
 function search(){
   var key = document.getElementById("key").value;
-  fetch(API,{
-    method:"POST",
-    body:JSON.stringify({action:"search", key:key, sheet: currentType==="movie"?"Sheet1":currentType==="software"?"Sheet2":"Sheet3"})
-  })
-  .then(r=>r.json())
-  .then(show)
-  .catch(err=>alert("Error: "+err));
+  fetch(API,{method:"POST", body:JSON.stringify({action:"search", key:key, sheet: currentType==="movie"?"Sheet1":currentType==="software"?"Sheet2":"Sheet3"})})
+  .then(r=>r.json()).then(show).catch(err=>alert("Error: "+err));
 }
 
-// Show results
 function show(data){
   var res = document.getElementById("res");
   res.innerHTML = "";
@@ -231,31 +165,22 @@ function show(data){
   });
 }
 
-// Update entry
 function update(id){
   var data = {action:"update", id:id};
   fields[currentType].forEach(f=>{
     var val = document.querySelector(`#res input[id^='${f.id}']`)?.value || document.getElementById(f.id)?.value;
     if(val) data[f.id] = val;
   });
-  // Assign sheet
   if(currentType==="movie") data.sheet="Sheet1";
   else if(currentType==="software") data.sheet="Sheet2";
   else data.sheet="Sheet3";
 
-  fetch(API,{
-    method:"POST",
-    body:JSON.stringify(data)
-  })
+  fetch(API,{method:"POST", body:JSON.stringify(data)})
   .then(r=>r.json())
-  .then(res=>{
-    if(res.status==="success") alert("Updated in Google Sheet!");
-    else alert("Update failed: "+res.message);
-  })
+  .then(res=>{if(res.status==="success") alert("Updated!"); else alert("Update failed: "+res.message);})
   .catch(err=>alert("Error: "+err));
 }
 
-// Initial
 changeType();
 </script>
 
