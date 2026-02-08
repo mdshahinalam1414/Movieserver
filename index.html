@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎬 Sci-Fi Movie Database</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+
+body {
+  font-family: 'Orbitron', sans-serif;
+  background: radial-gradient(circle at 20% 20%, #0f0c29, #302b63, #24243e);
+  color: #fff;
+  padding: 20px;
+}
+
+h2 {
+  text-align: center;
+  color: #00ffff;
+  text-shadow: 0 0 10px #00ffff;
+  margin-bottom: 20px;
+}
+
+.box {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid #00ffff;
+  box-shadow: 0 0 20px #00ffff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+input, button, select {
+  padding: 8px 12px;
+  margin: 5px 5px 10px 0;
+  border-radius: 6px;
+  border: 1px solid #00ffff;
+  background: rgba(0,0,0,0.5);
+  color: #00ffff;
+  font-size: 14px;
+}
+
+input::placeholder {
+  color: #00ffffaa;
+}
+
+button {
+  cursor: pointer;
+  background: linear-gradient(45deg, #00ffff, #ff00ff);
+  color: #fff;
+  border: none;
+  font-weight: bold;
+  transition: 0.3s;
+  box-shadow: 0 0 10px #00ffff;
+}
+
+button:hover {
+  background: linear-gradient(45deg, #ff00ff, #00ffff);
+  box-shadow: 0 0 20px #ff00ff;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+th, td {
+  border: 1px solid #00ffff;
+  padding: 8px;
+  text-align: center;
+}
+
+th {
+  background: #00ffff;
+  color: black;
+  text-shadow: none;
+}
+
+td input, td select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid #00ffff;
+  background: rgba(0,0,0,0.5);
+  color: #00ffff;
+}
+</style>
+</head>
+<body>
+
+<h2>🎬 Sci-Fi Movie Database</h2>
+
+<!-- Add Movie/Series -->
+<div class="box">
+<h3>Add New Movie/Series</h3>
+<input id="name" placeholder="Movie / Series Name">
+
+<!-- Genre editable dropdown -->
+<input list="genreList" id="genre" placeholder="Select or type Genre">
+<datalist id="genreList">
+  <option>Action</option>
+  <option>Adventure</option>
+  <option>Drama</option>
+  <option>Comedy</option>
+  <option>Horror</option>
+  <option>Romance</option>
+  <option>Sci-Fi</option>
+</datalist>
+<button onclick="addOption('genre')">+ Add Genre</button>
+
+<!-- Country editable dropdown -->
+<input list="countryList" id="country" placeholder="Select or type Country">
+<datalist id="countryList">
+  <option>USA</option>
+  <option>UK</option>
+  <option>India</option>
+  <option>Japan</option>
+  <option>Korea</option>
+  <option>France</option>
+</datalist>
+<button onclick="addOption('country')">+ Add Country</button>
+
+<input id="year" placeholder="Release Year" type="number">
+<input id="link" placeholder="Link (Trailer / IMDb / Streaming)">
+<button onclick="save()">Save</button>
+</div>
+
+<!-- Search -->
+<div class="box">
+<h3>Search Database</h3>
+<input id="key" placeholder="ID / Name / Genre / Country">
+<button onclick="search()">Search</button>
+
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Genre</th>
+<th>Country</th>
+<th>Year</th>
+<th>Link</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="res"></tbody>
+</table>
+</div>
+
+<script>
+// ✅ Google Apps Script Web App URL
+var API = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+
+// Add new option dynamically
+function addOption(type){
+  var val = prompt("Enter new " + (type=="genre"?"Genre":"Country") + ":");
+  if(val){
+    var list = document.getElementById(type+"List");
+    var exists = Array.from(list.options).some(o=>o.value.toLowerCase() === val.toLowerCase());
+    if(!exists){
+      var option = document.createElement("option");
+      option.value = val;
+      list.appendChild(option);
+      document.getElementById(type).value = val;
+      alert(val + " added to the list!");
+    } else {
+      alert(val + " already exists in the list!");
+      document.getElementById(type).value = val;
+    }
+  }
+}
+
+// Add Data
+function save() {
+  var data = {
+    action: "add",
+    id: Date.now(),
+    name: document.getElementById("name").value,
+    genre: document.getElementById("genre").value,
+    country: document.getElementById("country").value,
+    year: document.getElementById("year").value,
+    link: document.getElementById("link").value
+  };
+
+  fetch(API, {
+    method: "POST",
+    body: JSON.stringify(data)
+  })
+  .then(()=>{ alert("Saved!"); clearInputs(); })
+  .catch(err=>alert("Error: "+err));
+}
+
+function clearInputs() {
+  document.getElementById("name").value = "";
+  document.getElementById("genre").value = "";
+  document.getElementById("country").value = "";
+  document.getElementById("year").value = "";
+  document.getElementById("link").value = "";
+}
+
+// Search Data
+function search() {
+  var key = document.getElementById("key").value;
+  fetch(API, {
+    method: "POST",
+    body: JSON.stringify({action: "search", key: key})
+  })
+  .then(resp => resp.json())
+  .then(show)
+  .catch(err => alert("Error: "+err));
+}
+
+// Show search results
+function show(data){
+  var res = document.getElementById("res");
+  res.innerHTML = "";
+  data.forEach(function(r){
+    res.innerHTML += `
+      <tr>
+        <td>${r[0]}</td>
+        <td><input id="n${r[0]}" value="${r[1]}"></td>
+        <td><input list="genreList" id="g${r[0]}" value="${r[2]}"></td>
+        <td><input list="countryList" id="c${r[0]}" value="${r[3]}"></td>
+        <td><input id="y${r[0]}" value="${r[4]}"></td>
+        <td><input id="l${r[0]}" value="${r[5]}"></td>
+        <td><button onclick="update('${r[0]}')">Update</button></td>
+      </tr>
+    `;
+  });
+}
+
+// Update Data
+function update(id){
+  var data = {
+    action: "update",
+    id: id,
+    name: document.getElementById("n"+id).value,
+    genre: document.getElementById("g"+id).value,
+    country: document.getElementById("c"+id).value,
+    year: document.getElementById("y"+id).value,
+    link: document.getElementById("l"+id).value
+  };
+
+  fetch(API, {
+    method: "POST",
+    body: JSON.stringify(data)
+  })
+  .then(()=>{ alert("Updated!"); })
+  .catch(err=>alert("Error: "+err));
+}
+</script>
+
+</body>
+</html>
