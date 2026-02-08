@@ -17,14 +17,14 @@ body {
 h2 {
   text-align: center;
   color: #00ffff;
-  text-shadow: 0 0 10px #00ffff;
+  text-shadow: 0 0 15px #00ffff, 0 0 25px #ff00ff;
   margin-bottom: 20px;
 }
 
 .box {
   background: rgba(0, 0, 0, 0.7);
   border: 1px solid #00ffff;
-  box-shadow: 0 0 20px #00ffff;
+  box-shadow: 0 0 25px #00ffff, 0 0 50px #ff00ff;
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
@@ -38,10 +38,16 @@ input, button, select {
   background: rgba(0,0,0,0.5);
   color: #00ffff;
   font-size: 14px;
+  transition: 0.3s;
 }
 
 input::placeholder {
   color: #00ffffaa;
+}
+
+input:hover, select:hover {
+  background: rgba(0,0,0,0.7);
+  box-shadow: 0 0 10px #00ffff, 0 0 20px #ff00ff;
 }
 
 button {
@@ -56,7 +62,7 @@ button {
 
 button:hover {
   background: linear-gradient(45deg, #ff00ff, #00ffff);
-  box-shadow: 0 0 20px #ff00ff;
+  box-shadow: 0 0 25px #ff00ff, 0 0 50px #00ffff;
 }
 
 table {
@@ -86,6 +92,21 @@ td input, td select {
   background: rgba(0,0,0,0.5);
   color: #00ffff;
 }
+
+td a {
+  color: #ff00ff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+td a:hover {
+  text-decoration: underline;
+  color: #00ffff;
+}
+
+tr:hover {
+  background: rgba(0, 255, 255, 0.1);
+}
 </style>
 </head>
 <body>
@@ -97,7 +118,6 @@ td input, td select {
 <h3>Add New Movie/Series</h3>
 <input id="name" placeholder="Movie / Series Name">
 
-<!-- Genre editable dropdown -->
 <input list="genreList" id="genre" placeholder="Select or type Genre">
 <datalist id="genreList">
   <option>Action</option>
@@ -110,7 +130,6 @@ td input, td select {
 </datalist>
 <button onclick="addOption('genre')">+ Add Genre</button>
 
-<!-- Country editable dropdown -->
 <input list="countryList" id="country" placeholder="Select or type Country">
 <datalist id="countryList">
   <option>USA</option>
@@ -224,7 +243,7 @@ function show(data){
         <td><input list="genreList" id="g${r[0]}" value="${r[2]}"></td>
         <td><input list="countryList" id="c${r[0]}" value="${r[3]}"></td>
         <td><input id="y${r[0]}" value="${r[4]}"></td>
-        <td><input id="l${r[0]}" value="${r[5]}"></td>
+        <td>${r[5]?'<a href="'+r[5]+'" target="_blank">Open Link</a>':''}</td>
         <td><button onclick="update('${r[0]}')">Update</button></td>
       </tr>
     `;
