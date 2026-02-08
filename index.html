@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📊 Multi-Purpose Database</title>
+<title>📊 InfoVault</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -107,7 +107,7 @@
 </head>
 <body>
 
-<h2>📊 Multi-Purpose Database</h2>
+<h2>📊 InfoVault</h2>
 
 <!-- Type Selector -->
 <div class="box">
@@ -121,22 +121,18 @@
 <!-- Add Entry -->
 <div class="box" id="addBox">
   <h3>Add New Entry</h3>
-  <div class="add-row" id="addRow">
-    <!-- Fields will dynamically appear here -->
-  </div>
+  <div class="add-row" id="addRow"></div>
   <button onclick="save()">Add Entry</button>
 </div>
 
 <!-- Search -->
 <div class="box">
   <h3>Search Database</h3>
-  <input id="key" placeholder="ID / Name / Type / Genre / Platform / Server">
+  <input id="key" placeholder="ID / Name / Type / Genre / Country / Personality">
   <button onclick="search()">Search</button>
 
   <table>
-    <thead id="tableHead">
-      <!-- Table headers dynamically inserted -->
-    </thead>
+    <thead id="tableHead"></thead>
     <tbody id="res"></tbody>
   </table>
 </div>
@@ -146,7 +142,7 @@ var API = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
 
 var currentType = "movie";
 
-// Field templates for Movie/Series and Software/Server
+// Field templates
 const fields = {
   movie: [
     {id:"name", placeholder:"Movie / Series Name"},
@@ -157,20 +153,19 @@ const fields = {
   ],
   software: [
     {id:"name", placeholder:"Software / Server Name"},
-    {id:"platform", placeholder:"Platform / OS"},
-    {id:"server", placeholder:"Server Type / Location"},
+    {id:"personality", placeholder:"Famous Personality / Contributor", type:"datalist", options:["Linus Torvalds","Elon Musk","Bill Gates","Steve Jobs","Ada Lovelace"]},
     {id:"version", placeholder:"Version"},
     {id:"link", placeholder:"Link (Documentation / Download)"}
   ]
 };
 
-// Table headers for each type
+// Table headers
 const headers = {
   movie: ["ID","Name","Genre","Country","Year","Link","Action"],
-  software: ["ID","Name","Platform","Server","Version","Link","Action"]
+  software: ["ID","Name","Personality","Version","Link","Action"]
 }
 
-// Render input fields based on type
+// Render input fields
 function changeType(){
   currentType = document.getElementById("entryType").value;
   var row = document.getElementById("addRow");
@@ -178,8 +173,7 @@ function changeType(){
   fields[currentType].forEach(f=>{
     if(f.type==="datalist"){
       row.innerHTML += `<input list="${f.id}List" id="${f.id}" placeholder="${f.placeholder}">
-        <datalist id="${f.id}List">${f.options.map(o=>`<option>${o}</option>`).join("")}</datalist>
-        <button onclick="addOption('${f.id}')">+ Add</button>`;
+        <datalist id="${f.id}List">${f.options.map(o=>`<option>${o}</option>`).join("")}</datalist>`;
     } else {
       row.innerHTML += `<input id="${f.id}" placeholder="${f.placeholder}" ${f.type==="number"?"type='number'":""}>`;
     }
@@ -187,7 +181,7 @@ function changeType(){
   renderTableHead();
 }
 
-// Render table headers
+// Table headers
 function renderTableHead(){
   var th = document.getElementById("tableHead");
   th.innerHTML = "<tr>" + headers[currentType].map(h=>`<th>${h}</th>`).join("") + "</tr>";
