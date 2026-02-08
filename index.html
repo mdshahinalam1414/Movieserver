@@ -5,93 +5,66 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>📊 InfoVault</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #f0f2f5;
-    color: #333;
-    padding: 20px;
-  }
-
-  h2 {
-    text-align: center;
-    margin-bottom: 25px;
-    font-size: 2em;
-    color: #2c3e50;
-  }
-
-  .box {
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 25px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-
-  .box h3 {
-    margin-bottom: 15px;
-    color: #34495e;
-  }
-
-  .add-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-  }
-
-  .add-row input, .add-row select {
-    min-width: 120px;
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-  }
-
-  .add-row button {
-    cursor: pointer;
-    background-color: #3498db;
-    color: #fff;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
-  }
-
-  .add-row button:hover {
-    background-color: #2980b9;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-  }
-
-  th, td {
-    border: 1px solid #ccc;
-    padding: 8px;
-    text-align: center;
-  }
-
-  th {
-    background: #3498db;
-    color: #fff;
-  }
-
-  tr:nth-child(even) { background: #f7f9fc; }
-  tr:hover { background: #e1ecf7; }
-
-  td input, td select {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 6px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-  }
-
-  td a {
-    color: #3498db;
-    text-decoration: none;
-  }
-  td a:hover { text-decoration: underline; }
+body {
+  font-family: Arial, sans-serif;
+  background: #f0f2f5;
+  color: #333;
+  padding: 20px;
+}
+h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 2em;
+  color: #2c3e50;
+}
+.box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.box h3 {
+  margin-bottom: 15px;
+  color: #34495e;
+}
+.add-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.add-row input, .add-row select {
+  min-width: 120px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+.add-row button {
+  cursor: pointer;
+  background-color: #3498db;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+.add-row button:hover { background-color: #2980b9; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+th { background: #3498db; color: #fff; }
+tr:nth-child(even) { background: #f7f9fc; }
+tr:hover { background: #e1ecf7; }
+td input, td select { width:100%; padding:6px; border-radius:4px; border:1px solid #ccc; }
+td a { color:#3498db; text-decoration:none; }
+td a:hover { text-decoration:underline; }
 </style>
 </head>
 <body>
@@ -104,6 +77,7 @@
   <select id="entryType" onchange="changeType()">
     <option value="movie">Movie / Series</option>
     <option value="software">Software / Server</option>
+    <option value="personality">Famous Personality</option>
   </select>
 </div>
 
@@ -129,10 +103,9 @@
 <script>
 // ✅ Replace with your deployed Google Apps Script URL
 var API = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
-
 var currentType = "movie";
 
-// Fields
+// Fields per type
 const fields = {
   movie: [
     {id:"name", placeholder:"Movie / Series Name"},
@@ -147,16 +120,23 @@ const fields = {
     {id:"version", placeholder:"Version"},
     {id:"personality", placeholder:"Famous Personality / Contributor", type:"datalist", options:["Linus Torvalds","Elon Musk","Bill Gates","Steve Jobs","Ada Lovelace"]},
     {id:"link", placeholder:"Link (Documentation / Download)"}
+  ],
+  personality: [
+    {id:"name", placeholder:"Name"},
+    {id:"profession", placeholder:"Profession / Field"},
+    {id:"country", placeholder:"Country"},
+    {id:"link", placeholder:"Link (Wiki / Profile / Reference)"}
   ]
 };
 
 // Table headers
 const headers = {
   movie: ["ID","Name","Genre","Country","Year","Personality","Link","Action"],
-  software: ["ID","Name","Version","Personality","Link","Action"]
-}
+  software: ["ID","Name","Version","Personality","Link","Action"],
+  personality: ["ID","Name","Profession","Country","Link","Action"]
+};
 
-// Render input fields
+// Render inputs
 function changeType(){
   currentType = document.getElementById("entryType").value;
   var row = document.getElementById("addRow");
@@ -172,13 +152,13 @@ function changeType(){
   renderTableHead();
 }
 
-// Table headers
+// Table header
 function renderTableHead(){
   var th = document.getElementById("tableHead");
   th.innerHTML = "<tr>" + headers[currentType].map(h=>`<th>${h}</th>`).join("") + "</tr>";
 }
 
-// Add new option dynamically
+// Add option dynamically
 function addOption(id){
   var val = prompt("Enter new option for " + id + ":");
   if(val){
@@ -203,6 +183,10 @@ function save(){
   fields[currentType].forEach(f=>{
     data[f.id] = document.getElementById(f.id).value;
   });
+  // Specify sheetName for each type
+  if(currentType==="movie") data.sheet="Sheet1";
+  else if(currentType==="software") data.sheet="Sheet2";
+  else data.sheet="Sheet3";
 
   fetch(API,{
     method:"POST",
@@ -210,27 +194,21 @@ function save(){
   })
   .then(r=>r.json())
   .then(res=>{
-    if(res.status === "success") {
-      alert("Saved to Google Sheet!");
-      clearInputs();
-    } else {
-      alert("Error saving: "+res.message);
-    }
+    if(res.status==="success"){ alert("Saved to Google Sheet!"); clearInputs(); }
+    else alert("Error saving: "+res.message);
   })
   .catch(err=>alert("Error: "+err));
 }
 
 // Clear inputs
-function clearInputs(){
-  fields[currentType].forEach(f=>document.getElementById(f.id).value="");
-}
+function clearInputs(){ fields[currentType].forEach(f=>document.getElementById(f.id).value=""); }
 
 // Search
 function search(){
   var key = document.getElementById("key").value;
   fetch(API,{
     method:"POST",
-    body:JSON.stringify({action:"search", key:key})
+    body:JSON.stringify({action:"search", key:key, sheet: currentType==="movie"?"Sheet1":currentType==="software"?"Sheet2":"Sheet3"})
   })
   .then(r=>r.json())
   .then(show)
@@ -260,6 +238,10 @@ function update(id){
     var val = document.querySelector(`#res input[id^='${f.id}']`)?.value || document.getElementById(f.id)?.value;
     if(val) data[f.id] = val;
   });
+  // Assign sheet
+  if(currentType==="movie") data.sheet="Sheet1";
+  else if(currentType==="software") data.sheet="Sheet2";
+  else data.sheet="Sheet3";
 
   fetch(API,{
     method:"POST",
@@ -267,13 +249,13 @@ function update(id){
   })
   .then(r=>r.json())
   .then(res=>{
-    if(res.status === "success") alert("Updated in Google Sheet!");
+    if(res.status==="success") alert("Updated in Google Sheet!");
     else alert("Update failed: "+res.message);
   })
   .catch(err=>alert("Error: "+err));
 }
 
-// Initial render
+// Initial
 changeType();
 </script>
 
